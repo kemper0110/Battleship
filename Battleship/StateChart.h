@@ -84,27 +84,31 @@ enum Cell : int {
 	Empty = 0, Ship = 1, FiredEmpty, FiredShip
 };
 
+
 struct Data {
 	std::array<int, 5 * 5> map;
+	std::random_device rnd;
+	std::uniform_int_distribution<int> distr = std::uniform_int_distribution<int>(0, 5 * 5 - 1);
 	int last = 0, cur = 0;
-	int push(int step) {
+	void push(int step) {
 		last = cur;
 		cur = step;
 	}
 	int random_pos() {
-		static auto Rnd = [rnd = std::random_device(), distr = std::uniform_int_distribution<int>(0, map.size() - 1)]() mutable {
-			return distr(rnd);
-		};
-		return Rnd();
+		return distr(rnd);
+	}
+};
+Data data{
+	std::array<int, 5 * 5>{
+		0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0
 	}
 };
 
-
 struct hitMachine : sc::state_machine<hitMachine, state::indefinite> {
-	Data& data;
-	hitMachine(Data& data) : data(data) {
-
-	}
 };
 
 
@@ -115,8 +119,7 @@ struct state::indefinite : sc::simple_state<state::indefinite, hitMachine> {
 		sc::custom_reaction<event::missed>,
 		sc::custom_reaction<event::destroyed>
 	>;
-	Data& data;
-	indefinite() : data(context<hitMachine>().data) {
+	indefinite() {
 		auto pos = data.random_pos();
 		while (data.map[pos] != Cell::Empty)
 			pos = data.random_pos();
@@ -143,20 +146,19 @@ struct state::targetFound : sc::simple_state<state::targetFound, hitMachine> {
 		sc::custom_reaction<event::missed>,
 		sc::custom_reaction<event::destroyed>
 	>;
-	Data& data;
-	targetFound() : data(context<hitMachine>().data) {
+	targetFound() {
 		// round algo
 		const auto step = [this] {
 			auto const prev = data.cur;
 			const auto deltas = { -5, +5, -1, +1 }; // up, down, left, right
-			for (const auto delta : deltas) {
-				auto const idx = prev + delta;
-				if (idx >= 0 and idx < data.map.size() and data.map[idx] == Cell::Empty)
+			for (const auto delta : deltas)
+				if (auto idx = prev + delta;
+					idx >= 0 and idx < data.map.size() and data.map[idx] == Cell::Empty)
 					return idx;
-			}
 			throw std::runtime_error("can't hit ship and then not found continuation");
 		}();
 		data.push(step);
+		std::cout << "firing " << step << '\n';
 	}
 	sc::result react(const event::hit&) {
 		data.map[data.cur] = Cell::FiredShip;
@@ -178,17 +180,26 @@ struct state::continuationFound : sc::simple_state<state::continuationFound, hit
 		sc::custom_reaction<event::missed>,
 		sc::custom_reaction<event::destroyed>
 	>;
-	Data& data;
-	continuationFound() : data(context<hitMachine>().data) {
-
+	continuationFound() {
+		const auto direction = data.cur - data.last;
+		const auto step = data.cur + direction;
+		if (step < 0 or step >= data.map.size()) {
+			this->post_event(event::missed {});
+		} else {
+			data.push(step);
+			std::cout << "firing " << step << '\n';
+		}
 	}
 	sc::result react(const event::hit&) {
+		data.map[data.cur] = Cell::FiredShip;
 		return transit<state::continuationFound>();
 	}
 	sc::result react(const event::destroyed&) {
+		data.map[data.cur] = Cell::FiredShip;
 		return transit<state::indefinite>();
 	}
 	sc::result react(const event::missed&) {
+		data.map[data.cur] = Cell::FiredEmpty;
 		return transit<state::continuationReverse>();
 	}
 };
@@ -199,14 +210,25 @@ struct state::continuationReverse : sc::simple_state<state::continuationReverse,
 		sc::custom_reaction<event::missed>,
 		sc::custom_reaction<event::destroyed>
 	>;
-	Data& data;
-	continuationReverse() : data(context<hitMachine>().data) {
-
+	continuationReverse()
+	{
+		const auto direction = data.cur - data.last;
+		const auto reverse_direction = -direction;
+		const auto step = [this, reverse_direction] {
+			for (int i = data.cur; i >= 0 and i < data.map.size(); i += reverse_direction)
+				if (data.map[i] == Cell::Empty)
+					return i;
+			throw std::runtime_error("lier");
+		}();
+		data.push(step + direction);
+		data.push(step);
 	}
 	sc::result react(const event::hit&) {
+		data.map[data.cur] = Cell::FiredShip;
 		return transit<state::continuationFound>();
 	}
 	sc::result react(const event::destroyed&) {
+		data.map[data.cur] = Cell::FiredShip;
 		return transit<state::indefinite>();
 	}
 	sc::result react(const event::missed&) {
@@ -221,32 +243,29 @@ struct state::continuationReverse : sc::simple_state<state::continuationReverse,
 
 int dela_main()
 {
-	Data data{
-		std::array<int, 5 * 5>{
-			0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0
-	}
-	};
-	hitMachine machine(data);
-	machine.initiate();
+	try {
 
-	while (true) {
-		int result;
-		std::cin >> result;
-		switch (result) {
-		case 0: // missed
-			machine.process_event(event::missed {});
-			break;
-		case 1: // hit
-			machine.process_event(event::hit {});
-			break;
-		case 2: // destroyed
-			machine.process_event(event::destroyed {});
-			break;
+		hitMachine machine;
+		machine.initiate();
+
+		while (true) {
+			int result;
+			std::cin >> result;
+			switch (result) {
+			case 0: // missed
+				machine.process_event(event::missed {});
+				break;
+			case 1: // hit
+				machine.process_event(event::hit {});
+				break;
+			case 2: // destroyed
+				machine.process_event(event::destroyed {});
+				break;
+			}
 		}
+	}
+	catch (const std::exception& ex) {
+		std::cout << ex.what() << '\n';
 	}
 	return 0;
 }

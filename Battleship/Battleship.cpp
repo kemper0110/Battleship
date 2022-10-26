@@ -1,67 +1,69 @@
-﻿#include "BattleshipGame.h"
-#include <sdkddkver.h>
-#include <boost/asio.hpp>
+﻿//#include "BattleshipGame.h"
+//#include <sdkddkver.h>
+//#include <boost/asio.hpp>
+#include "StateChart.h"
 #include <iostream>
 
-namespace asio = boost::asio;
-namespace proc = asio::ip;
-using tcp = proc::tcp;
-using asio::co_spawn;
-using asio::detached;
-using asio::awaitable;
-using asio::use_awaitable;
-namespace this_coro = asio::this_coro;
-
-awaitable<void> sender(tcp::socket& socket) {
-	try {
-		for (;;) {
-			std::string str = "abobus";
-			str.resize(4096);
-			asio::deadline_timer timer(socket.get_executor(), boost::posix_time::seconds(2));
-			co_await timer.async_wait(use_awaitable);
-			co_await asio::async_write(socket, asio::buffer(str), use_awaitable);
-		}
-	}
-	catch (std::exception e) {
-		std::cout << e.what() << '\n';
-	}
-}
-awaitable<void> receiver(tcp::socket& socket) {
-	try {
-		for (;;) {
-			std::string v;
-			v.resize(4096);
-			auto n = co_await asio::async_read(socket, asio::buffer(v), use_awaitable);
-			std::cout << "received: " << v << '\n';
-		}
-	}
-	catch (std::exception e) {
-		std::cout << e.what() << '\n';
-	}
-}
+//namespace asio = boost::asio;
+//namespace proc = asio::ip;
+//using tcp = proc::tcp;
+//using asio::co_spawn;
+//using asio::detached;
+//using asio::awaitable;
+//using asio::use_awaitable;
+//namespace this_coro = asio::this_coro;
+//
+//awaitable<void> sender(tcp::socket& socket) {
+//	try {
+//		for (;;) {
+//			std::string str = "abobus";
+//			str.resize(4096);
+//			asio::deadline_timer timer(socket.get_executor(), boost::posix_time::seconds(2));
+//			co_await timer.async_wait(use_awaitable);
+//			co_await asio::async_write(socket, asio::buffer(str), use_awaitable);
+//		}
+//	}
+//	catch (std::exception e) {
+//		std::cout << e.what() << '\n';
+//	}
+//}
+//awaitable<void> receiver(tcp::socket& socket) {
+//	try {
+//		for (;;) {
+//			std::string v;
+//			v.resize(4096);
+//			auto n = co_await asio::async_read(socket, asio::buffer(v), use_awaitable);
+//			std::cout << "received: " << v << '\n';
+//		}
+//	}
+//	catch (std::exception e) {
+//		std::cout << e.what() << '\n';
+//	}
+//}
 
 int main() {
 	std::system("chcp 1251 && cls");
-	asio::io_context ioc{ 1 };
+	dela_main();
+	//asio::io_context ioc{ 1 };
 
-	try {
-		tcp::socket socket(ioc);
-		socket.connect({ proc::address::from_string("127.0.0.1"), 3000 });
+	//try {
+	//	tcp::socket socket(ioc);
+	//	socket.connect({ proc::address::from_string("127.0.0.1"), 3000 });
 
-		co_spawn(ioc, receiver(socket), detached);
-		co_spawn(ioc, sender(socket), detached);
-	}
-	catch (std::exception e) {
-		std::cout << e.what() << '\n';
+	//	co_spawn(ioc, receiver(socket), detached);
+	//	co_spawn(ioc, sender(socket), detached);
+	//}
+	//catch (std::exception e) {
+	//	std::cout << e.what() << '\n';
 
-		tcp::acceptor acceptor(ioc, { proc::make_address_v4("127.0.0.1"), 3000 });
-		auto socket = acceptor.accept();
+	//	tcp::acceptor acceptor(ioc, { proc::make_address_v4("127.0.0.1"), 3000 });
+	//	auto socket = acceptor.accept();
 
-		co_spawn(ioc, receiver(socket), detached);
-		co_spawn(ioc, sender(socket), detached);
-	}
+	//	co_spawn(ioc, receiver(socket), detached);
+	//	co_spawn(ioc, sender(socket), detached);
+	//}
 
-	ioc.run();
+	//ioc.run();
 
 
 
