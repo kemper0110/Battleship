@@ -39,26 +39,26 @@ namespace Battleship
 		void draw_board(std::array<Cell, 10 * 10>& board, const sf::Vector2f& start_pos);
 		void _init_connect_pipe();
 
+		awaitable<void> send(const std::string& message);
+		awaitable<std::string> receive();
+
+
 		awaitable<void> play();
 
-		coro<Event> attack_coro() {
-
-		}
-		coro<Event> defence_coro() {
-
-		}
+		awaitable<void> attack_coro();
+		awaitable<void> defence_coro();
 
 		struct AttackState {
 			enum : int {
 				indefinite = 0, target_found, target_continue, target_reverse
 			};
 			int state = indefinite;
-		};
+		} attack_state;
 
-		coro<Event> attack_indefinite_coro(AttackState& state);
-		coro<Event> attack_target_found_coro(AttackState& state);
-		coro<Event> attack_target_continue_coro(AttackState& state);
-		coro<Event> attack_target_reverse_coro(AttackState& state);
+		awaitable<void> attack_indefinite_coro();
+		awaitable<void> attack_target_found_coro();
+		awaitable<void> attack_target_continue_coro();
+		awaitable<void> attack_target_reverse_coro();
 
 	public:
 		constexpr static wchar_t pipe_name[] = LR"(\\.\pipe\AbobaPipe)";
@@ -74,6 +74,7 @@ namespace Battleship
 		HANDLE pipe_handle = nullptr;
 		int player_id = 0;
 
+		AsyncEvent buttonClickEvent;
 
 		/*
 			Ships
