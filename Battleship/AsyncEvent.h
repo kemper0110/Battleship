@@ -9,6 +9,9 @@ public:
 	auto async_wait(WaitToken&& handler) {
 		return timer.async_wait(std::forward<WaitToken>(handler));
 	}
+	auto async_wait() {
+		return timer.async_wait();
+	}
 	void notify_one() {
 		timer.cancel_one();
 	}
@@ -16,6 +19,6 @@ public:
 		timer.cancel();
 	}
 private:
-	boost::asio::deadline_timer timer;
+	deadline_timer timer;
 };
 

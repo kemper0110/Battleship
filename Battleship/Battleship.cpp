@@ -18,6 +18,11 @@ int main() {
 
 
 
-
-	return Battleship::BattleshipGame().run();
+	try {
+		return Battleship::BattleshipGame().run();
+	}
+	catch (const std::exception& ex) {
+		std::cout << "exception inside battleship: " << ex.what() << '\n';
+	}
+	return 0;
 }

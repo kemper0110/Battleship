@@ -19,10 +19,12 @@ int Battleship::BattleshipGame::run() {
 	_init_connect_pipe();
 	pipe_stream.assign(pipe_handle);
 
-	if (player_id == 0) 	// attacking
-		button_active = true;
-	else 			// defencing
-		button_active = false;
+	std::cout << "i'm player #" << player_id << '\n';
+
+	//if (player_id == 0) 	// attacking
+	//	button_active = true;
+	//else 			// defencing
+	//	button_active = false;
 
 
 	const auto main_context_guard = boost::asio::make_work_guard(main_context);
@@ -174,6 +176,9 @@ awaitable<void> Battleship::BattleshipGame::play() {
 	for (;;) {
 	player0:
 		{
+			button_active = true;
+			std::cout << "attack state, button = " << button_active << '\n';
+			render();
 			Event attack_result;
 			do attack_result = co_await co_spawn(main_context, attack_coro(), use_awaitable);
 			while (attack_result != Event::Missed);
@@ -182,8 +187,11 @@ awaitable<void> Battleship::BattleshipGame::play() {
 		}
 	player1:
 		{
+			button_active = false;
+			std::cout << "defence state, button = " << button_active << '\n';
+			render();
 			Event defence_result;
-			do defence_result = co_await co_spawn(main_context, attack_coro(), use_awaitable);
+			do defence_result = co_await co_spawn(main_context, defence_coro(), use_awaitable);
 			while (defence_result != Event::Missed);
 			if (defence_result == Event::Destroyed)
 				break;
@@ -194,17 +202,16 @@ awaitable<void> Battleship::BattleshipGame::play() {
 awaitable<Battleship::BattleshipGame::Event>
 Battleship::BattleshipGame::attack_coro()
 {
-	button_active = true;
-	render();
-	co_await buttonClickEvent.async_wait(use_awaitable);
-	button_active = false;
-	render();
+	try {
+		co_await buttonClickEvent.async_wait();
+	}
+	catch (...){}
 
 	Event attack_result;
-
 	switch (attack_state.state) {
 	case AttackState::indefinite:
 		attack_result = co_await co_spawn(main_context, attack_indefinite_coro(), use_awaitable);
+		break;
 	case AttackState::target_found:
 		attack_result = co_await co_spawn(main_context, attack_target_found_coro(), use_awaitable);
 		break;
@@ -234,19 +241,24 @@ Battleship::BattleshipGame::defence_coro()
 		case Cell::FiredEmpty: case Cell::FiredShip:
 			throw std::runtime_error("bad strategy: opponent fires already fired cell #" + message);
 		}
-		for (const auto dir : { 1, -1, 10, -10 }) {
-			if (pos + dir < 0 or pos + dir >= self_board.size())
-				continue;
-			if (self_board[pos] == Cell::Ship) {
-				self_board[pos] = Cell::FiredShip;
-				return Event::Hitted;
-			}
-		}
 		self_board[pos] = Cell::FiredShip;
+		// check is ship destroyed
+		
+		for (const auto dir : { 1, -1, 10, -10 }) {
+			const auto newpos = pos + dir;
+			if (newpos < 0 or newpos >= self_board.size())
+				continue;
+			if (self_board[newpos] == Cell::Ship) 
+				return Event::Hitted;
+			if (self_board[newpos] == Cell::FiredShip) 
+				for (int i = newpos; i >= 0 and i < self_board.size() and self_board[i] != Cell::Empty; i += dir) 
+					if (self_board[i] == Cell::Ship)
+						return Event::Hitted;
+		}
 		return Event::Destroyed;
 	}();
 	co_await send(std::to_string(event));
-
+	render();
 	co_return event;
 }
 
@@ -264,7 +276,6 @@ awaitable<Battleship::BattleshipGame::Event> Battleship::BattleshipGame::attack_
 	std::cout << "attacking " << pos << '\n';
 
 	co_await send(std::to_string(pos));
-	render();
 	const auto& response_str = co_await receive();
 
 	// transitions
@@ -294,7 +305,7 @@ awaitable<Battleship::BattleshipGame::Event> Battleship::BattleshipGame::attack_
 {
 	const auto step = [this] {
 		auto const prev = attack_state.cur;
-		const auto deltas = { -5, +5, -1, +1 }; // up, down, left, right
+		const auto deltas = { -10, +10, -1, +1 }; // up, down, left, right
 		for (const auto delta : deltas)
 			if (auto idx = prev + delta;
 				idx >= 0 and idx < opponent_board.size() and opponent_board[idx] == Cell::Empty)
@@ -306,7 +317,6 @@ awaitable<Battleship::BattleshipGame::Event> Battleship::BattleshipGame::attack_
 	std::cout << "attacking " << step << '\n';
 
 	co_await send(std::to_string(step));
-	render();
 	const auto& response_str = co_await receive();
 
 	// transitions
@@ -341,15 +351,24 @@ awaitable<Battleship::BattleshipGame::Event> Battleship::BattleshipGame::attack_
 	const auto step = attack_state.cur + direction;
 	// delegate attacking
 	// if step is out of bounds
-	if (step < 0 or step >= opponent_board.size()) {
-		attack_state.state = AttackState::target_reverse;
-		co_return co_await co_spawn(main_context, attack_target_reverse_coro(), use_awaitable);
+	{
+		const auto [step_y, step_x] = std::div(step, 10);
+		const auto [cur_y, cur_x] = std::div(attack_state.cur, 10);
+		const auto abs_dir = std::abs(direction);
+		if (
+			step < 0 or step >= opponent_board.size() or
+			abs_dir == 1 and step_y != cur_y or			// new step is in same row
+			abs_dir == 5 and step_x != cur_x			// new step is in same col
+			) {
+			attack_state.state = AttackState::target_reverse;
+			co_return co_await co_spawn(main_context, attack_target_reverse_coro(), use_awaitable);
+		}
 	}
+
 
 	std::cout << "attacking " << step << '\n';
 
 	co_await send(std::to_string(step));
-	render();
 	const auto& response_str = co_await receive();
 
 	// transitions
@@ -394,7 +413,6 @@ awaitable<Battleship::BattleshipGame::Event> Battleship::BattleshipGame::attack_
 	std::cout << "attacking " << step << '\n';
 
 	co_await send(std::to_string(step));
-	render();
 	const auto& response_str = co_await receive();
 
 	// transitions
