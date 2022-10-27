@@ -4,6 +4,7 @@
 #define BOOST_ASIO_HAS_IOCP
 #include <boost/asio.hpp>
 #include <boost/asio/experimental/as_single.hpp>
+#include <boost/asio/experimental/coro.hpp>
 
 
 
@@ -13,6 +14,8 @@ using tcp = proc::tcp;
 using asio::co_spawn;
 using asio::detached;
 using asio::awaitable;
+using asio::experimental::use_coro;
+using asio::experimental::coro;
 using asio::use_awaitable;
 namespace this_coro = asio::this_coro;
 using boost::system::error_code;

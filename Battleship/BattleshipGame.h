@@ -10,12 +10,11 @@
 
 #include "fwd.h"
 
-#include "StateChart.h"
+//#include "StateChart.h"
 
 
 namespace Battleship
 {
-	namespace asio = boost::asio;
 
 	class BattleshipGame {
 	private:
@@ -38,6 +37,11 @@ namespace Battleship
 		void draw_board(std::array<Cell, 10 * 10>& board, const sf::Vector2f& start_pos);
 		void _init_connect_pipe();
 
+		awaitable<void> play();
+
+		coro<Event> attack_coro();
+
+		coro<Event> defence_coro();
 
 	public:
 		constexpr static wchar_t pipe_name[] = LR"(\\.\pipe\AbobaPipe)";

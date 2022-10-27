@@ -121,9 +121,9 @@ asio::awaitable<void> Battleship::BattleshipGame::defence()
 		self_board[pos] = Cell::FiredShip;
 		return Event::Destroyed;
 	}();
-	
+
 	std::string response = std::to_string(event);
-	const auto&[sended_ec, sended_n] = co_await pipe_stream.async_write_some(asio::buffer(response));
+	const auto& [sended_ec, sended_n] = co_await pipe_stream.async_write_some(asio::buffer(response));
 	assert(sended_n == response.length());
 	if (sended_ec) {
 		std::cout << "send error: " << sended_ec.message() << '\n';
@@ -134,7 +134,7 @@ asio::awaitable<void> Battleship::BattleshipGame::defence()
 
 	std::cout << "sended response: " << event << '\n';
 	switch (event) {
-	case Event::Destroyed: case Event::Hitted: 
+	case Event::Destroyed: case Event::Hitted:
 		co_spawn(main_context, defence(), detached);
 		break;
 	case Event::Missed:
@@ -281,5 +281,48 @@ void Battleship::BattleshipGame::draw_board(std::array<Cell, 10 * 10>& board, co
 			window.draw(vline, 2, sf::Lines);
 			window.draw(hline, 2, sf::Lines);
 		}
+	}
+}
+
+
+
+awaitable<void> Battleship::BattleshipGame::play()
+{
+	auto attack = attack_coro();
+	auto defence = defence_coro();
+
+	// start from defencing if player is second
+	if (player_id == 0)
+		goto player0;
+	else
+		goto player1;
+
+	for (;;) {
+	player0:
+		{
+			std::optional<Event> attack_result;
+			do
+				attack_result = co_await attack.async_resume(asio::use_awaitable);
+			while (attack_result.has_value() and attack_result.value() != Event::Missed);
+		}
+	player1:
+		{
+			std::optional<Event> defence_result;
+			do
+				defence_result = co_await defence.async_resume(asio::use_awaitable);
+			while (defence_result.has_value() and defence_result.value() != Event::Missed);
+		}
+	}
+}
+
+coro<Battleship::BattleshipGame::Event> Battleship::BattleshipGame::attack_coro() {
+	for (;;) {
+
+	}
+}
+
+coro<Battleship::BattleshipGame::Event> Battleship::BattleshipGame::defence_coro() {
+	for (;;) {
+
 	}
 }
