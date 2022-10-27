@@ -1,4 +1,10 @@
-﻿#include "BattleshipGame.h"
+﻿
+#define _SILENCE_CXX23_ALIGNED_STORAGE_DEPRECATION_WARNING
+#define _SILENCE_CXX23_ALIGNED_STORAGE_DEPRECATION_WARNING
+#define _SILENCE_ALL_CXX23_DEPRECATION_WARNINGS
+
+
+#include "BattleshipGame.h"
 //#include <sdkddkver.h>
 //#include <boost/asio.hpp>
 //#include "StateChart.h"

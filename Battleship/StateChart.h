@@ -1,14 +1,14 @@
 #pragma once
-#include <boost/statechart/state_machine.hpp>
-#include <boost/statechart/custom_reaction.hpp>
-#include <boost/statechart/simple_state.hpp>
-#include <boost/statechart/state.hpp>
-#include <boost/statechart/transition.hpp>
-
-#include <boost/msm/front/state_machine_def.hpp>
-#include <boost/msm/back/state_machine.hpp>
-#include <boost/mpl/list.hpp>
-#include <boost/mpl/vector.hpp>
+//#include <boost/statechart/state_machine.hpp>
+//#include <boost/statechart/custom_reaction.hpp>
+//#include <boost/statechart/simple_state.hpp>
+//#include <boost/statechart/state.hpp>
+//#include <boost/statechart/transition.hpp>
+//
+//#include <boost/msm/front/state_machine_def.hpp>
+//#include <boost/msm/back/state_machine.hpp>
+//#include <boost/mpl/list.hpp>
+//#include <boost/mpl/vector.hpp>
 
 
 #include <iostream>
@@ -17,75 +17,75 @@
 
 #include "fwd.h"
 
-
-namespace sc = boost::statechart;
-namespace mpl = boost::mpl;
-namespace msm = boost::msm;
+//
+//namespace sc = boost::statechart;
+//namespace mpl = boost::mpl;
+//namespace msm = boost::msm;
 
 
 
 
 // events
-namespace event {
-	struct first_player : sc::event<first_player> {};
-	struct second_player : sc::event<second_player> {};
-
-	struct missed : sc::event<missed> {};
-	struct hitted : sc::event<hitted> {};
-
-	struct won : sc::event<won> {};
-	struct losed : sc::event<losed> {};
-}
-
-namespace state {
-	struct start;
-	struct end;
-	struct attack;
-	struct defence;
-}
-
-
-struct Fsm : sc::state_machine<Fsm, state::start> {
-	friend Battleship::BattleshipGame;
-	Battleship::BattleshipGame& game;
-	Fsm(Battleship::BattleshipGame& game);
-};
-
-// states
-struct state::start : sc::state<state::start, Fsm> {
-	using base = sc::state<::state::start, Fsm>;
-	using reactions = mpl::list<
-		sc::custom_reaction<event::first_player>,
-		sc::transition<event::second_player, ::state::defence>
-	>;
-	Battleship::BattleshipGame& game;
-	start(my_context ctx);
-	sc::result react(const event::first_player&);
-};
-struct state::end : sc::state<state::end, Fsm> {
-	using base = sc::state<::state::end, Fsm>;
-	Battleship::BattleshipGame& game;
-	end(my_context ctx);
-};
-
-struct state::attack : sc::state<state::attack, Fsm> {
-	using base = sc::state<::state::attack, Fsm>;
-	using reactions = mpl::list<
-		sc::transition<event::hitted, ::state::attack >,
-		sc::transition<event::missed, ::state::defence>
-	>;
-	Battleship::BattleshipGame& game;
-	attack(my_context ctx);
-};
-struct state::defence : sc::state<state::defence, Fsm> {
-	using base = sc::state<::state::defence, Fsm>;
-	using reactions = mpl::list<
-		sc::transition<event::hitted, ::state::defence>,
-		sc::transition<event::missed, ::state::attack>
-	>;
-	Battleship::BattleshipGame& game;
-	defence(my_context ctx);
-};
+//namespace event {
+//	struct first_player : sc::event<first_player> {};
+//	struct second_player : sc::event<second_player> {};
+//
+//	struct missed : sc::event<missed> {};
+//	struct hitted : sc::event<hitted> {};
+//
+//	struct won : sc::event<won> {};
+//	struct losed : sc::event<losed> {};
+//}
+//
+//namespace state {
+//	struct start;
+//	struct end;
+//	struct attack;
+//	struct defence;
+//}
+//
+//
+//struct Fsm : sc::state_machine<Fsm, state::start> {
+//	friend Battleship::BattleshipGame;
+//	Battleship::BattleshipGame& game;
+//	Fsm(Battleship::BattleshipGame& game);
+//};
+//
+//// states
+//struct state::start : sc::state<state::start, Fsm> {
+//	using base = sc::state<::state::start, Fsm>;
+//	using reactions = mpl::list<
+//		sc::custom_reaction<event::first_player>,
+//		sc::transition<event::second_player, ::state::defence>
+//	>;
+//	Battleship::BattleshipGame& game;
+//	start(my_context ctx);
+//	sc::result react(const event::first_player&);
+//};
+//struct state::end : sc::state<state::end, Fsm> {
+//	using base = sc::state<::state::end, Fsm>;
+//	Battleship::BattleshipGame& game;
+//	end(my_context ctx);
+//};
+//
+//struct state::attack : sc::state<state::attack, Fsm> {
+//	using base = sc::state<::state::attack, Fsm>;
+//	using reactions = mpl::list<
+//		sc::transition<event::hitted, ::state::attack >,
+//		sc::transition<event::missed, ::state::defence>
+//	>;
+//	Battleship::BattleshipGame& game;
+//	attack(my_context ctx);
+//};
+//struct state::defence : sc::state<state::defence, Fsm> {
+//	using base = sc::state<::state::defence, Fsm>;
+//	using reactions = mpl::list<
+//		sc::transition<event::hitted, ::state::defence>,
+//		sc::transition<event::missed, ::state::attack>
+//	>;
+//	Battleship::BattleshipGame& game;
+//	defence(my_context ctx);
+//};
 
 
 //namespace event {

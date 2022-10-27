@@ -288,40 +288,82 @@ void Battleship::BattleshipGame::draw_board(std::array<Cell, 10 * 10>& board, co
 
 awaitable<void> Battleship::BattleshipGame::play()
 {
-	auto attack = attack_coro();
-	auto defence = defence_coro();
+	//auto attack = attack_coro();
+	//auto defence = defence_coro();
 
-	// start from defencing if player is second
-	if (player_id == 0)
-		goto player0;
-	else
-		goto player1;
+	//// start from defencing if player is second
+	//if (player_id == 0)
+	//	goto player0;
+	//else
+	//	goto player1;
 
+	//for (;;) {
+	//player0:
+	//	{
+	//		std::optional<Event> attack_result;
+	//		do attack_result = co_await attack.async_resume(asio::use_awaitable);
+	//		while (attack_result.has_value() and attack_result.value() != Event::Missed);
+	//	}
+	//player1:
+	//	{
+	//		std::optional<Event> defence_result;
+	//		do defence_result = co_await defence.async_resume(asio::use_awaitable);
+	//		while (defence_result.has_value() and defence_result.value() != Event::Missed);
+	//	}
+	//}
+	co_return;
+}
+
+//coro<Battleship::BattleshipGame::Event> Battleship::BattleshipGame::attack_coro() {
+//
+//	//auto indefinite = attack_indefinite_coro(state);
+//	//auto target_found = attack_target_found_coro(state);
+//	//auto target_continue = attack_target_continue_coro(state);
+//	//auto target_reverse = attack_target_reverse_coro(state);
+//	//for (;;) {
+//	//	switch (state.state) {
+//	//	case AttackState::indefinite:
+//	//		co_await indefinite.async_resume(use_coro);
+//	//		break;
+//	//	case AttackState::target_found:
+//	//		co_await target_found.async_resume(use_coro);
+//	//		break;
+//	//	case AttackState::target_continue:
+//	//		co_await target_continue.async_resume(use_coro);
+//	//		break;
+//	//	case AttackState::target_reverse:
+//	//		co_await target_reverse.async_resume(use_coro);
+//	//		break;
+//	//	}
+//	//	co_yield Event::Missed;
+//	//}
+//	//co_yield Event{};
+//	co_return;
+//}
+
+//coro<Battleship::BattleshipGame::Event> Battleship::BattleshipGame::defence_coro() {
+//	for (;;) {
+//
+//	}
+//}
+
+coro<Battleship::BattleshipGame::Event> Battleship::BattleshipGame::attack_indefinite_coro(AttackState& state) {
 	for (;;) {
-	player0:
-		{
-			std::optional<Event> attack_result;
-			do
-				attack_result = co_await attack.async_resume(asio::use_awaitable);
-			while (attack_result.has_value() and attack_result.value() != Event::Missed);
-		}
-	player1:
-		{
-			std::optional<Event> defence_result;
-			do
-				defence_result = co_await defence.async_resume(asio::use_awaitable);
-			while (defence_result.has_value() and defence_result.value() != Event::Missed);
-		}
+
+	}
+}
+coro<Battleship::BattleshipGame::Event> Battleship::BattleshipGame::attack_target_found_coro(AttackState& state) {
+	for (;;) {
+
 	}
 }
 
-coro<Battleship::BattleshipGame::Event> Battleship::BattleshipGame::attack_coro() {
+coro<Battleship::BattleshipGame::Event> Battleship::BattleshipGame::attack_target_continue_coro(AttackState& state) {
 	for (;;) {
 
 	}
 }
-
-coro<Battleship::BattleshipGame::Event> Battleship::BattleshipGame::defence_coro() {
+coro<Battleship::BattleshipGame::Event> Battleship::BattleshipGame::attack_target_reverse_coro(AttackState& state) {
 	for (;;) {
 
 	}

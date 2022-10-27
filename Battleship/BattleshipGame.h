@@ -8,6 +8,8 @@
 #include <array>
 #include <random>
 
+#include "AsyncEvent.h"
+
 #include "fwd.h"
 
 //#include "StateChart.h"
@@ -39,9 +41,24 @@ namespace Battleship
 
 		awaitable<void> play();
 
-		coro<Event> attack_coro();
+		coro<Event> attack_coro() {
 
-		coro<Event> defence_coro();
+		}
+		coro<Event> defence_coro() {
+
+		}
+
+		struct AttackState {
+			enum : int {
+				indefinite = 0, target_found, target_continue, target_reverse
+			};
+			int state = indefinite;
+		};
+
+		coro<Event> attack_indefinite_coro(AttackState& state);
+		coro<Event> attack_target_found_coro(AttackState& state);
+		coro<Event> attack_target_continue_coro(AttackState& state);
+		coro<Event> attack_target_reverse_coro(AttackState& state);
 
 	public:
 		constexpr static wchar_t pipe_name[] = LR"(\\.\pipe\AbobaPipe)";
