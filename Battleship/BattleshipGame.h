@@ -1,4 +1,5 @@
 #pragma once
+#define _SILENCE_ALL_CXX23_DEPRECATION_WARNINGS
 
 
 #include <SFML/Graphics.hpp>
@@ -26,39 +27,45 @@ namespace Battleship
 		enum Event : int {
 			Missed = 0, Hitted, Destroyed
 		};
+		struct AttackState {
+			enum : int {
+				indefinite = 0, target_found, target_continue, target_reverse
+			};
+			void push(int step) {
+				last = cur;
+				cur = step;
+			}
+			int last = 0, cur = 0;
+			int state = indefinite;
+		} attack_state;
 	public:
 		BattleshipGame();
 		int run();
 		//private:
 
 		void render();
-		asio::awaitable<void> defence();
-		asio::awaitable<void> onButtonClickAsync();
 		void onButtonClick();
 		void onEvent(sf::Event event);
 		void draw_board(std::array<Cell, 10 * 10>& board, const sf::Vector2f& start_pos);
 		void _init_connect_pipe();
 
+
+		asio::any_io_executor get_executor() {
+			return main_context.get_executor();
+		}
+
 		awaitable<void> send(const std::string& message);
 		awaitable<std::string> receive();
 
-
 		awaitable<void> play();
 
-		awaitable<void> attack_coro();
-		awaitable<void> defence_coro();
+		awaitable<Event> attack_coro();
+		awaitable<Event> defence_coro();
 
-		struct AttackState {
-			enum : int {
-				indefinite = 0, target_found, target_continue, target_reverse
-			};
-			int state = indefinite;
-		} attack_state;
-
-		awaitable<void> attack_indefinite_coro();
-		awaitable<void> attack_target_found_coro();
-		awaitable<void> attack_target_continue_coro();
-		awaitable<void> attack_target_reverse_coro();
+		awaitable<Event> attack_indefinite_coro();
+		awaitable<Event> attack_target_found_coro();
+		awaitable<Event> attack_target_continue_coro();
+		awaitable<Event> attack_target_reverse_coro(); 
 
 	public:
 		constexpr static wchar_t pipe_name[] = LR"(\\.\pipe\AbobaPipe)";
