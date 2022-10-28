@@ -49,10 +49,23 @@ namespace Battleship
 		void draw_board(std::array<Cell, 10 * 10>& board, const sf::Vector2f& start_pos);
 		void _init_connect_pipe();
 
+		void fill_destroyed_ship(std::array<Cell, 10 * 10>& board, int pos) {
+			for (const auto dir : { -10, 10, 1, -1 }) {
+				const auto newpos = pos + dir;
+				if (newpos < 0 or newpos >= board.size())
+					continue;
+				if (board[newpos] == Cell::FiredShip) {
+					
+					for (int i = newpos; i >= 0 and i < board.size() and board[i] != Cell::Empty; i += dir) {
 
-		asio::any_io_executor get_executor() {
-			return main_context.get_executor();
+					}
+
+					break;
+				}
+			}
 		}
+
+		asio::any_io_executor get_executor();
 
 		awaitable<void> send(const std::string& message);
 		awaitable<std::string> receive();

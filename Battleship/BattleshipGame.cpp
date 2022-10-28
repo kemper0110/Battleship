@@ -144,6 +144,10 @@ void Battleship::BattleshipGame::_init_connect_pipe() {
 
 
 
+asio::any_io_executor Battleship::BattleshipGame::get_executor() {
+	return main_context.get_executor();
+}
+
 awaitable<void> Battleship::BattleshipGame::send(const std::string& message)
 {
 	const auto& [send_ec, sended_n] = co_await pipe_stream.async_write_some(asio::buffer(message));
