@@ -50,19 +50,35 @@ namespace Battleship
 		void _init_connect_pipe();
 
 		void fill_destroyed_ship(std::array<Cell, 10 * 10>& board, int pos) {
-			for (const auto dir : { -10, 10, 1, -1 }) {
-				const auto newpos = pos + dir;
-				if (newpos < 0 or newpos >= board.size())
-					continue;
-				if (board[newpos] == Cell::FiredShip) {
-					
-					for (int i = newpos; i >= 0 and i < board.size() and board[i] != Cell::Empty; i += dir) {
+			//const static auto get_normal = [](int dir) {
+			//	switch (std::abs(dir)) {
+			//	case 1:
+			//		return 10;
+			//	case 10:
+			//		return 1;
+			//	default:
+			//		throw std::runtime_error("unexpected direction vector");
+			//	}
+			//};
 
-					}
-
-					break;
-				}
-			}
+			//for (const auto dir : { -10, 10, 1, -1 }) {
+			//	const auto newpos = pos + dir;
+			//	if (newpos < 0 or newpos >= board.size())
+			//		continue;
+			//	if (board[newpos] == Cell::FiredShip) {
+			//		const auto normal = get_normal(dir);
+			//		for (int i = newpos; i >= 0 and i < board.size() and board[i] != Cell::Empty; i += dir) {
+			//			for (const auto dir : { -10, 10, 1, -1, -11, -9, 11, 9 }) {
+			//				const auto newnewpos = newpos + dir;
+			//				if (newnewpos < 0 or newnewpos >= board.size())
+			//					continue;
+			//				if (board[newnewpos] == Cell::Empty)
+			//					board[newnewpos] = Cell::FiredEmpty;
+			//			}
+			//		}
+			//		break;
+			//	}
+			//}
 		}
 
 		asio::any_io_executor get_executor();
